@@ -1,0 +1,257 @@
+<template>
+<a-card>
+  <page-layout title='容器组'>
+    <div style="height: 32px;">
+      <div style="width:100px;float: left;"><h3>namespace:</h3></div>
+      <a-select :default-value="namespace" style="width: 120px;float: left;" @change="namespaceChange">
+        <a-select-option :key="ns" v-for="ns in namespaceAll"   :value="ns">
+          {{ ns }}
+        </a-select-option>
+      </a-select>
+      <div style="margin-left: 100px;float: left;">
+        <a-select :default-value="0" style="width: 90px;float: left;" @change="searchChange">
+          <a-select-option :key="search.ind" v-for="search in searchTypes"   :value="search.ind">
+            {{ search.name }}
+          </a-select-option>
+        </a-select>
+        <a-input style="width: 140px;float: left;" v-model="searchContent" placeholder="请输入搜索内容" />
+        <a-button type="primary" @click="searchPod">
+          <a-icon type="search" />
+        </a-button>
+      </div>
+    </div>
+    <a-divider />
+    <a-table :columns="podColumns" :data-source="podShow">
+      <span slot="action" slot-scope="record">
+        <router-link :to="'/pod/detail/' + record.name + '?namespace=' + record.namespace">详情</router-link>
+      </span>
+      <span slot="status" slot-scope="text,record" >
+        <a-tooltip placement="right" overlayClassName="tooltip_150px">
+          <template slot="title">
+            <p style="font-size: 8px;">
+            {{ record.showCondition }}
+            </p>
+          </template>
+          <div v-if="record.statusAllOk">
+            <div style="color: #52c41a;">{{ record.status  }}</div>
+            <!-- <a-icon type="check-circle" theme="twoTone" two-tone-color="#52c41a"/> -->
+          </div>
+          <div v-else>
+            <div style="color: #FF7D40;">{{ record.status  }}</div>
+            <!-- <a-icon type="exclamation-circle" theme="twoTone" two-tone-color="#FF7D40" /> -->
+          </div>
+        </a-tooltip>
+      </span>
+      <span slot="labels" slot-scope="text,record">
+        <div style="float: left;" :key="label.key" v-for="label in record.labels">
+          <a-tooltip placement="top">
+            <template slot="title">
+              <span>{{ "" + label.key + ":" + label.value }}</span>
+            </template>
+            <a-tag style="overflow: hidden;max-width: 60px;" >{{ "" + label.key + ":" + label.value }}</a-tag>
+          </a-tooltip>
+        </div>
+      </span>
+    </a-table>
+  </page-layout>
+</a-card>
+</template>
+
+
+<script>
+const podColumns = [
+  {
+    title: '名称',
+    dataIndex: 'name',
+    key: 'name',
+    width: 110,
+  },
+  {
+    title: '标签',
+    scopedSlots: { customRender: 'labels' },
+    width: 60,
+  },
+  {
+    title: '状态',
+    scopedSlots: { customRender: 'status' },
+    width: 100,
+  },
+  {
+    title: '重启次数',
+    dataIndex: 'restartCount',
+    key: 'restartCount',
+    width: 60,
+  },
+  {
+    title: 'Pod IP',
+    dataIndex: 'podIP',
+    key: 'podIP',
+    width: 130,
+  },
+  {
+    title: '节点',
+    dataIndex: 'nodeName',
+    key: 'nodeName',
+    width: 120,
+  },
+  {
+    title: '创建时间',
+    dataIndex: 'createTime',
+    key: 'createTime',
+    width: 200,
+  },
+  {
+    title: '操作',
+    scopedSlots: { customRender: 'action' },
+  },
+]
+import {getPodsOfOneNamespace, getNamespaceList} from '@/services/k8s'
+import PageLayout from '@/layouts/PageLayout'
+export default {
+  name:"Pod",
+  components:{PageLayout},
+  data(){
+    return{
+      podColumns,
+      namespace:"default",
+      namespaceAll:[],
+      podShow:[],
+      podShowBK:[],
+      podSave:[],
+      searchTypes:[{name:"名称",ind:0},{name:"节点",ind:1},{name:"Host IP",ind:2},{name:"Pod IP",ind:3},{name:"标签",ind:4}],
+      searchBy:0,
+      searchContent:"",
+    }
+  },
+  methods:{
+    async firstLoad(){
+      await this.loadNamespceList()
+      await this.loadPod()
+    },
+    async loadPod(){
+      getPodsOfOneNamespace(this.namespace).then(res => {
+        this.podSave = res.data.data.items
+        let end = this.podSave.length
+        this.podShow = []
+        for(let ind = 0; ind < end; ind++){
+          let showLabel = [];
+          for (let k in this.podSave[ind].metadata.labels) {
+              showLabel.push({key:k, value:this.podSave[ind].metadata.labels[k]});
+          }
+          let showCondition = "";
+          let k_end = this.podSave[ind].status.conditions.length
+          let allOK = true;
+          for (let k = 0; k < k_end; k++ ) {
+            allOK &= "True" == this.podSave[ind].status.conditions[k].status;
+            showCondition += "" + this.podSave[ind].status.conditions[k].type + ":" + this.podSave[ind].status.conditions[k].status + "\n"
+          }
+          let restartCount = 0
+          k_end = this.podSave[ind].status.containerStatuses.length
+          for(let k = 0; k < k_end; k++){
+            restartCount = restartCount > this.podSave[ind].status.containerStatuses[k].restartCount ? restartCount : this.podSave[ind].status.containerStatuses[k].restartCount
+          }
+          this.podShow.push({
+            key:ind,
+            name: this.podSave[ind].metadata.name,
+            labels:showLabel,
+            status:this.podSave[ind].status.phase,
+            podIP:this.podSave[ind].status.podIP,
+            hostIP:this.podSave[ind].status.hostIP,
+            showCondition:showCondition,
+            restartCount:restartCount,
+            nodeName:this.podSave[ind].spec.nodeName,
+            createTime:this.podSave[ind].metadata.creationTimestamp,
+            statusAllOk:allOK,
+            namespace:this.podSave[ind].metadata.namespace
+          })
+          this.podShowBK = this.deepclone(this.podShow)
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    },
+    async loadNamespceList(){
+      getNamespaceList().then(res => {
+        let namespaceList = res.data.data.items
+        let end = namespaceList.length
+        this.namespaceAll = []
+        for(let ind = 0; ind < end; ind++) {
+          this.namespaceAll.push(namespaceList[ind].metadata.name)
+        }
+        console.log(this.namespaceAll)
+      })
+    },
+    namespaceChange(value){
+      this.namespace=value
+      this.loadPod()
+    },
+    searchChange(value){
+      this.searchBy = value
+    },
+    searchPod(){
+      this.podShow = []
+      let end = this.podShowBK.length
+      switch(this.searchBy){
+        case 0:{
+          for(let ind = 0; ind < end; ind++){
+            if(this.podShowBK[ind].name.indexOf(this.searchContent) != -1){
+              this.podShow.push(this.deepclone(this.podShowBK[ind]))
+            }
+          }
+          break
+        }
+        case 1:{
+          for(let ind = 0; ind < end; ind++){
+            if(this.podShowBK[ind].nodeName.indexOf(this.searchContent) != -1){
+              this.podShow.push(this.deepclone(this.podShowBK[ind]))
+            }
+          }
+          break
+        }
+        case 2:{
+          for(let ind = 0; ind < end; ind++){
+            if(this.podShowBK[ind].hostIP.indexOf(this.searchContent) != -1){
+              this.podShow.push(this.deepclone(this.podShowBK[ind]))
+            }
+          }
+          break
+        }
+        case 3:{
+          for(let ind = 0; ind < end; ind++){
+            if(this.podShowBK[ind].podIP.indexOf(this.searchContent) != -1){
+              this.podShow.push(this.deepclone(this.podShowBK[ind]))
+            }
+          }
+          break
+        }
+        case 4:{
+          for(let ind = 0; ind < end; ind++){
+            for(let labelind=0,lend=this.podShowBK[ind].labels.length; labelind < lend; labelind++)
+              if(this.podShowBK[ind].labels[labelind].key.indexOf(this.searchContent) != -1 || this.podShowBK[ind].labels[labelind].value.indexOf(this.searchContent) != -1){
+                this.podShow.push(this.deepclone(this.podShowBK[ind]))
+                break
+              }
+          }
+          break
+        }
+      }
+    },
+    deepclone(ob){
+      let json_bk = JSON.stringify(ob)
+      return JSON.parse(json_bk)
+    }
+  },
+  mounted(){
+    this.firstLoad()
+  }
+}
+
+</script>
+
+<style lang="less">
+.tooltip_150px{
+  width: 150px;
+  max-width: 150px !important;
+}
+
+</style>
