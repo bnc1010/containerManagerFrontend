@@ -12,4 +12,7 @@ module.exports = {
   NODE: `${BASE_URL}/root/getNode`,
   POD_LIST: `${BASE_URL}/admin/listPods`,
   POD: `${BASE_URL}/admin/getPod`,
+  POD_EVENT : `${BASE_URL}/admin/podEvent`,
+  CONTAINER_LOG : `${BASE_URL}/admin/podLog`,
 }
+

@@ -107,6 +107,7 @@ const podColumns = [
 ]
 import {getPodsOfOneNamespace, getNamespaceList} from '@/services/k8s'
 import PageLayout from '@/layouts/PageLayout'
+import {UTCZ2UTC8} from '@/utils/time'
 export default {
   name:"Pod",
   components:{PageLayout},
@@ -160,7 +161,7 @@ export default {
             showCondition:showCondition,
             restartCount:restartCount,
             nodeName:this.podSave[ind].spec.nodeName,
-            createTime:this.podSave[ind].metadata.creationTimestamp,
+            createTime:UTCZ2UTC8(this.podSave[ind].metadata.creationTimestamp),
             statusAllOk:allOK,
             namespace:this.podSave[ind].metadata.namespace
           })

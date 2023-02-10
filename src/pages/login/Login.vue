@@ -82,7 +82,7 @@ export default {
           
         // })
         loadRoutes({})
-        this.$router.push('/dashboard/workplace')
+        this.$router.push('/dashboard/analysis')
         this.$message.success(loginRes.message, 3)
       } else {
         this.error = loginRes.message

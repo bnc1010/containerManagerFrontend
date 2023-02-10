@@ -1,4 +1,4 @@
-import {NAMESPACE_LIST, NODE_LIST, NODE, POD_LIST, POD} from './api'
+import {NAMESPACE_LIST, NODE_LIST, NODE, POD_LIST, POD, POD_EVENT, CONTAINER_LOG} from './api'
 import {request, METHOD} from '@/utils/request'
 
 export async function getNamespaceList() {
@@ -24,3 +24,14 @@ export async function getPodsOfOneNamespace(namespace) {
 export async function getPodByName(namespace, podName) {
   return request(POD, METHOD.POST, {"namespace": namespace, "pod": podName})
 }
+
+export async function getPodEvent(namespace, fileSelector) {
+  return request(POD_EVENT, METHOD.POST, {"namespace": namespace, "fieldSelector":fileSelector})
+}
+
+export async function getContainerLog(namespace, podName, containerName, lines) {
+  return request(CONTAINER_LOG, METHOD.POST, {"namespace": namespace, "pod":podName, "container":containerName, "lines":lines})
+}
+
+
+

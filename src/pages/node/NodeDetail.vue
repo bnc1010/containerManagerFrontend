@@ -70,6 +70,7 @@
 import {getNode, getPodsOfOneNode} from '@/services/k8s'
 import PageLayout from '@/layouts/PageLayout'
 import DetailList from '@/components/tool/DetailList'
+import {UTCZ2UTC8} from '@/utils/time'
 const DetailListItem = DetailList.Item
 export default {
     name: 'NodeDetail',
@@ -99,42 +100,12 @@ export default {
 					architecture:"",
 				},
 				conditionColumns:[
-					{
-						title: '类型',
-						dataIndex: 'type',
-						key: 'type',
-						width: 110,
-					},
-					{
-						title: '状态',
-						dataIndex: 'status',
-						key: 'status',
-						width: 65,
-					},
-					{
-						title: '最近心跳',
-						dataIndex: 'lastHeartbeatTime',
-						key: 'lastHeartbeatTime',
-						width: 120,
-					},
-					{
-						title: '最近更改',
-						dataIndex: 'lastTransitionTime',
-						key: 'lastTransitionTime',
-						width: 120,
-					},
-					{
-						title: '内容',
-						dataIndex: 'reason',
-						key: 'reason',
-						width: 120,
-					},
-					{
-						title: '信息',
-						dataIndex: 'message',
-						key: 'message',
-						width: 120,
-					}
+					{ title: '类型', dataIndex: 'type', key: 'type', width: 110,},
+					{ title: '状态', dataIndex: 'status', key: 'status', width: 65,},
+					{ title: '最近心跳', dataIndex: 'lastHeartbeatTime', key: 'lastHeartbeatTime', width: 100,},
+					{ title: '最近更改', dataIndex: 'lastTransitionTime', key: 'lastTransitionTime', width: 100,},
+					{ title: '内容', dataIndex: 'reason', key: 'reason', width: 120,},
+					{ title: '信息', dataIndex: 'message', key: 'message', width: 120,}
 				],
 				podColumns:[]
 			}
@@ -145,7 +116,7 @@ export default {
 				getNode(nodeName).then(res => {
 					this.nodeSave = res.data.data
 					this.nodeShow.name = this.nodeSave.metadata.name
-					this.nodeShow.createTime = this.nodeSave.metadata.creationTimestamp
+					this.nodeShow.createTime = UTCZ2UTC8(this.nodeSave.metadata.creationTimestamp)
 					this.nodeShow.uid = this.nodeSave.metadata.uid
 					this.nodeShow.cidr = this.nodeSave.spec.podCIDR
 					this.nodeShow.providerID = this.nodeSave.spec.providerID
@@ -183,7 +154,11 @@ export default {
 					if(this.nodeSave.spec.taints)this.nodeShow.taints=this.nodeSave.spec.taints
 					this.nodeShow.conditions = this.nodeSave.status.conditions
 					let end = this.nodeShow.conditions.length
-					for(let ind = 0; ind < end; ind++)this.nodeShow.conditions[ind].key = ind
+					for(let ind = 0; ind < end; ind++){
+						this.nodeShow.conditions[ind].key = ind
+						this.nodeShow.conditions[ind].lastHeartbeatTime = UTCZ2UTC8(this.nodeShow.conditions[ind].lastHeartbeatTime)
+						this.nodeShow.conditions[ind].lastTransitionTime = UTCZ2UTC8(this.nodeShow.conditions[ind].lastTransitionTime)
+					}
 				})
 			},
 			loadPodsOfTheNodes() {

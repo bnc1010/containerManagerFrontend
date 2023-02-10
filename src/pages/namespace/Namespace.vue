@@ -11,6 +11,7 @@
 </template>
 <script>
 import {getNamespaceList} from '@/services/k8s'
+import {UTCZ2UTC8} from '@/utils/time'
   const columns = [
     {
       title: 'Name',
@@ -49,7 +50,10 @@ import {getNamespaceList} from '@/services/k8s'
             let end = namespaceList.length
             this.namespaceShowList = []
             for(let ind = 0; ind < end; ind++) {
-              this.namespaceShowList.push({name:namespaceList[ind].metadata.name, createTime:namespaceList[ind].metadata.creationTimestamp,status:namespaceList[ind].status.phase})
+              this.namespaceShowList.push({
+                name:namespaceList[ind].metadata.name, 
+                createTime:UTCZ2UTC8(namespaceList[ind].metadata.creationTimestamp),
+                status:namespaceList[ind].status.phase})
             }
             console.log(this.namespaceShowList)
           })

@@ -37,40 +37,15 @@
 <script>
 import {getNodeList} from '@/services/k8s'
 import PageLayout from '@/layouts/PageLayout'
-  const columns = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      width: 120,
-    },
-    {
-      title: 'Ip',
-      dataIndex: 'ip',
-      key: 'ip',
-      width: 220,
-    },
-    {
-      title: 'CreateTime',
-      dataIndex: 'createTime',
-      key: 'createTime',
-      width: 200,
-    },
-    {
-      title: 'Status',
-      scopedSlots: { customRender: 'status' },
-      width: 80,
-    },
-    {
-      title: 'Tags',
-      scopedSlots: { customRender: 'labels' },
-      width: 80,
-    },
-    {
-      title: 'Action',
-      scopedSlots: { customRender: 'action' },
-    },
-  ];
+import {UTCZ2UTC8} from '@/utils/time'
+const columns = [
+  { title: 'Name', dataIndex: 'name', key: 'name', width: 120,},
+  { title: 'Ip', dataIndex: 'ip', key: 'ip', width: 220,},
+  { title: 'CreateTime', dataIndex: 'createTime', key: 'createTime', width: 200,},
+  { title: 'Status', scopedSlots: { customRender: 'status' }, width: 80,},
+  { title: 'Tags', scopedSlots: { customRender: 'labels' }, width: 80,},
+  { title: 'Action', scopedSlots: { customRender: 'action' },},
+];
   
 export default {
     name: 'Node',
@@ -118,7 +93,7 @@ export default {
                         key: ind,
                         name: nodeList[ind].metadata.name,
                         ip: ip["ExternalIP"] + "/" + ip["InternalIP"],
-                        createTime: nodeList[ind].metadata.creationTimestamp,
+                        createTime: UTCZ2UTC8(nodeList[ind].metadata.creationTimestamp),
                         status: showCondition,
                         allStatusOk: allOK,
                         labels: showLabel
