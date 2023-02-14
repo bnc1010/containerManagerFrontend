@@ -86,13 +86,13 @@
           </a-tab-pane>
           <a-tab-pane key="6" tab="日志">
             <div style="float: left;"><h3>容器:</h3></div>
-            <a-select :default-value="logContainer" style="width: 120px;float: left;" @change="logContainerChange">
+            <a-select :default-value="logContainer" style="width: 120px;float: left;" @change="refreshLog">
               <a-select-option :key="container.key" v-for="container in containerShow"   :value="container.name">
                 {{ container.name }}
               </a-select-option>
             </a-select>
             <div style="margin-left: 30px; float: left;"><h3>显示行数:</h3></div>
-            <a-select :default-value="100" style="width: 120px;float: left;" @change="logShowLinesChange">
+            <a-select :default-value="100" style="width: 120px;float: left;" @change="refreshLog">
               <a-select-option key="l50" value="1">50</a-select-option>
               <a-select-option key="l100" value="2">100</a-select-option>
               <a-select-option key="l200" value="3">200</a-select-option>
@@ -296,12 +296,6 @@ export default {
           break
         }
       }
-    },
-    logContainerChange(){
-      this.loadLog()
-    },
-    logShowLinesChange(){
-      this.loadLog()
     },
     refreshLog(){
       this.loadLog()

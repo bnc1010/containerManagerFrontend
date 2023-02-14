@@ -35,7 +35,7 @@
   </a-card>
 </template>
 <script>
-import {getNodeList} from '@/services/k8s'
+import {getNodeList, getNodeMetrics} from '@/services/k8s'
 import PageLayout from '@/layouts/PageLayout'
 import {UTCZ2UTC8} from '@/utils/time'
 const columns = [
@@ -58,51 +58,57 @@ export default {
         };
     },
     methods: {
-        loadNodeList() {
-            getNodeList().then(res => {
-                // console.log(res.data);
-                let nodeList = res.data.data.items;
-                this.nodeSaveList = nodeList;
-                let end = nodeList.length;
-                this.nodeShowList = [];
-                for (let ind = 0; ind < end; ind++) {
-                    let ip = {
-                        ExternalIP: "null",
-                        InternalIP: "null",
-                        Hostname: "null"
-                    };
-                    // console.log(nodeList[ind].status.addresses);
-                    if (nodeList[ind].status.addresses[0])
-                        ip[nodeList[ind].status.addresses[0].type] = nodeList[ind].status.addresses[0].address;
-                    if (nodeList[ind].status.addresses[1])
-                        ip[nodeList[ind].status.addresses[1].type] = nodeList[ind].status.addresses[1].address;
-                    if (nodeList[ind].status.addresses[2])
-                        ip[nodeList[ind].status.addresses[2].type] = nodeList[ind].status.addresses[2].address;
-                    let showLabel = "";
-                    for (let k in nodeList[ind].metadata.labels) {
-                        showLabel += k + ":" + nodeList[ind].metadata.labels[k] + "\n";
-                    }
-                    let showCondition = "";
-                    end = nodeList[ind].status.conditions.length;
-                    let allOK = true;
-                    for (let k = 0; k < end; k++) {
-                        allOK &= (nodeList[ind].status.conditions[k].type == "Ready" ? "True" : "False") == nodeList[ind].status.conditions[k].status;
-                        showCondition += nodeList[ind].status.conditions[k].type + ":" + nodeList[ind].status.conditions[k].status + "\n";
-                    }
-                    let node = {
-                        key: ind,
-                        name: nodeList[ind].metadata.name,
-                        ip: ip["ExternalIP"] + "/" + ip["InternalIP"],
-                        createTime: UTCZ2UTC8(nodeList[ind].metadata.creationTimestamp),
-                        status: showCondition,
-                        allStatusOk: allOK,
-                        labels: showLabel
-                    };
-                    this.nodeShowList.push(node);
-                }
-                console.log(this.nodeShowList);
-            });
-        }
+      async loadNodeList() {
+        await getNodeList().then(res => {
+            // console.log(res.data);
+          let nodeList = res.data.data.items;
+          this.nodeSaveList = nodeList;
+          let end = nodeList.length;
+          this.nodeShowList = [];
+          for (let ind = 0; ind < end; ind++) {
+            let ip = {
+              ExternalIP: "null",
+              InternalIP: "null",
+              Hostname: "null"
+            };
+            // console.log(nodeList[ind], ind, nodeList.length);
+            if (nodeList[ind].status.addresses[0])
+                ip[nodeList[ind].status.addresses[0].type] = nodeList[ind].status.addresses[0].address;
+            if (nodeList[ind].status.addresses[1])
+                ip[nodeList[ind].status.addresses[1].type] = nodeList[ind].status.addresses[1].address;
+            if (nodeList[ind].status.addresses[2])
+                ip[nodeList[ind].status.addresses[2].type] = nodeList[ind].status.addresses[2].address;
+            let showLabel = "";
+            for (let k in nodeList[ind].metadata.labels) {
+              showLabel += k + ":" + nodeList[ind].metadata.labels[k] + "\n";
+            }
+            let showCondition = "";
+            let allOK = true;
+            for (let k = 0, kEnd = nodeList[ind].status.conditions.length; k < kEnd; k++) {
+              allOK &= (nodeList[ind].status.conditions[k].type == "Ready" ? "True" : "False") == nodeList[ind].status.conditions[k].status;
+              showCondition += nodeList[ind].status.conditions[k].type + ":" + nodeList[ind].status.conditions[k].status + "\n";
+            }
+            let node = {
+              key: ind,
+              name: nodeList[ind].metadata.name,
+              ip: ip["ExternalIP"] + "/" + ip["InternalIP"],
+              createTime: UTCZ2UTC8(nodeList[ind].metadata.creationTimestamp),
+              status: showCondition,
+              allStatusOk: allOK,
+              labels: showLabel
+            };
+            this.nodeShowList.push(node);
+          }
+          // console.log(this.nodeShowList);
+        });
+
+        getNodeMetrics().then(res => {
+          console.log(res.data)
+        })
+      }
+
+
+      
     },
     mounted() {
         this.loadNodeList();

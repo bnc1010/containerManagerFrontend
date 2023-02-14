@@ -52,6 +52,10 @@
           </a-tooltip>
         </div>
       </span>
+      <span slot="useage" slot-scope="record">
+        <div style="height: 30px;"><MiniArea v-bind:sdata="record.cpu_json" :height="25" :width="100"></MiniArea></div>
+        <div style="height: 30px;margin-top: 10px ;"><MiniArea v-bind:sdata="record.mem_json" :height="25" :width="100"></MiniArea></div>
+      </span>
     </a-table>
   </page-layout>
 </a-card>
@@ -60,57 +64,23 @@
 
 <script>
 const podColumns = [
-  {
-    title: '名称',
-    dataIndex: 'name',
-    key: 'name',
-    width: 110,
-  },
-  {
-    title: '标签',
-    scopedSlots: { customRender: 'labels' },
-    width: 60,
-  },
-  {
-    title: '状态',
-    scopedSlots: { customRender: 'status' },
-    width: 100,
-  },
-  {
-    title: '重启次数',
-    dataIndex: 'restartCount',
-    key: 'restartCount',
-    width: 60,
-  },
-  {
-    title: 'Pod IP',
-    dataIndex: 'podIP',
-    key: 'podIP',
-    width: 130,
-  },
-  {
-    title: '节点',
-    dataIndex: 'nodeName',
-    key: 'nodeName',
-    width: 120,
-  },
-  {
-    title: '创建时间',
-    dataIndex: 'createTime',
-    key: 'createTime',
-    width: 200,
-  },
-  {
-    title: '操作',
-    scopedSlots: { customRender: 'action' },
-  },
+  { title: '名称', dataIndex: 'name', key: 'name', width: 110,},
+  { title: '标签', scopedSlots: { customRender: 'labels' }, width: 60,},
+  { title: '状态', scopedSlots: { customRender: 'status' }, width: 100,},
+  { title: '重启次数', dataIndex: 'restartCount', key: 'restartCount', width: 60,},
+  { title: 'Pod IP', dataIndex: 'podIP', key: 'podIP', width: 130,},
+  { title: '节点', dataIndex: 'nodeName', key: 'nodeName', width: 120,},
+  { title: '创建时间', dataIndex: 'createTime', key: 'createTime', width: 120,},
+  { title: '用量', scopedSlots: { customRender: 'useage' },  width: 150},
+  { title: '操作', scopedSlots: { customRender: 'action' },},
 ]
-import {getPodsOfOneNamespace, getNamespaceList} from '@/services/k8s'
+import {getPodsOfOneNamespace, getNamespaceList, getPodCPU, getPodMemory} from '@/services/k8s'
 import PageLayout from '@/layouts/PageLayout'
 import {UTCZ2UTC8} from '@/utils/time'
+import MiniArea from '@/components/chart/MiniArea.vue'
 export default {
   name:"Pod",
-  components:{PageLayout},
+  components:{PageLayout, MiniArea},
   data(){
     return{
       podColumns,
@@ -128,9 +98,10 @@ export default {
     async firstLoad(){
       await this.loadNamespceList()
       await this.loadPod()
+      this.loadPodMetrics()
     },
     async loadPod(){
-      getPodsOfOneNamespace(this.namespace).then(res => {
+      await getPodsOfOneNamespace(this.namespace).then(res => {
         this.podSave = res.data.data.items
         let end = this.podSave.length
         this.podShow = []
@@ -163,7 +134,11 @@ export default {
             nodeName:this.podSave[ind].spec.nodeName,
             createTime:UTCZ2UTC8(this.podSave[ind].metadata.creationTimestamp),
             statusAllOk:allOK,
-            namespace:this.podSave[ind].metadata.namespace
+            namespace:this.podSave[ind].metadata.namespace,
+            cpu:[],
+            mem:[],
+            cpu_json:"[]",
+            mem_json:"[]",
           })
           this.podShowBK = this.deepclone(this.podShow)
         }
@@ -172,19 +147,20 @@ export default {
       })
     },
     async loadNamespceList(){
-      getNamespaceList().then(res => {
+      await getNamespaceList().then(res => {
         let namespaceList = res.data.data.items
         let end = namespaceList.length
         this.namespaceAll = []
         for(let ind = 0; ind < end; ind++) {
           this.namespaceAll.push(namespaceList[ind].metadata.name)
         }
-        console.log(this.namespaceAll)
+        // console.log(this.namespaceAll)
       })
     },
-    namespaceChange(value){
+    async namespaceChange(value){
       this.namespace=value
-      this.loadPod()
+      await this.loadPod()
+      await this.loadPodMetrics()
     },
     searchChange(value){
       this.searchBy = value
@@ -236,10 +212,28 @@ export default {
           break
         }
       }
+      this.loadPodMetrics()
     },
     deepclone(ob){
       let json_bk = JSON.stringify(ob)
       return JSON.parse(json_bk)
+    },
+    async loadPodMetrics(){
+      for(let ind = 0, end = this.podShow.length; ind < end; ind++){
+        await getPodCPU(this.namespace, this.podShow[ind].name).then(res => {
+          let mlegth = res.data.data.metrics.length
+          for(let _i = 0, _ed = mlegth > 20 ? 0 : 20 - mlegth; _i < _ed; _i++ )this.podShow[ind].cpu.push(0.0)
+          for(let _i = mlegth > 20 ? mlegth - 20 : 0; _i < mlegth; _i ++)this.podShow[ind].cpu.push((res.data.data.metrics[_i].value / 1000).toFixed(2))
+        })
+        await getPodMemory(this.namespace, this.podShow[ind].name).then(res => {
+          let mlegth = res.data.data.metrics.length
+          for(let _i = 0, _ed = mlegth > 20 ? 0 : 20 - mlegth; _i < _ed; _i++ )this.podShow[ind].mem.push(0.0)
+          for(let _i = mlegth > 20 ? mlegth - 20 : 0; _i < mlegth; _i ++)this.podShow[ind].mem.push( (res.data.data.metrics[_i].value / (1024 * 1024)).toFixed(2))
+        })
+        this.podShow[ind].cpu_json = JSON.stringify(this.podShow[ind].cpu)
+        this.podShow[ind].mem_json = JSON.stringify(this.podShow[ind].mem)
+        // console.log(this.podShow[ind].cpu_json, this.podShow[ind].mem_json)
+      }
     }
   },
   mounted(){

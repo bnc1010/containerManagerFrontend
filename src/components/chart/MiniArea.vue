@@ -1,27 +1,16 @@
 <template>
-  <div class="mini-chart">
+  <div class="mini-chart" :style="'{max-width:' + width + 'px;width:' + width +'px}'">
     <div class="chart-content" :style="{height: 46}">
-      <v-chart :force-fit="true" :height="height" :data="data" :padding="[36, 5, 18, 5]">
-        <v-tooltip />
-        <v-smooth-area position="x*y" />
+      <v-chart :force-fit="true" :height="height" :data="getData" :padding="[36, 5, 18, 5]">
+        <v-tooltip :showTitle="false"/>
+        <v-line position="time*value" :size="1" color="time" adjust="stack" />
+        <v-area position="time*value" />
       </v-chart>
     </div>
   </div>
 </template>
 
 <script>
-import {format} from 'date-fns'
-
-const data = []
-const beginDay = new Date().getTime()
-
-const fakeY = [7, 5, 4, 2, 4, 7, 5, 6, 5, 9, 6, 3, 1, 5, 3, 6, 5]
-for (let i = 0; i < fakeY.length; i += 1) {
-  data.push({
-    x: format(new Date(beginDay + 1000 * 60 * 60 * 24 * i), 'yyyy-MM-dd'),
-    y: fakeY[i]
-  })
-}
 
 const tooltip = [
   'x*y',
@@ -31,26 +20,47 @@ const tooltip = [
   })
 ]
 
-const scale = [{
-  dataKey: 'x',
-  min: 2
-}, {
-  dataKey: 'y',
-  title: '时间',
-  min: 1,
-  max: 22
-}]
+const scale = [
+  { dataKey: 'time', min: 0}, 
+  { dataKey: 'value', title: '值', min: 0}
+]
 
 export default {
+  props:{
+    sdata:{
+      type:String,
+      default:"[]"
+    },
+    height:{
+      default:100
+    },
+    width:{
+      default:200
+    }
+  },
   name: 'MiniArea',
   data () {
     return {
-      data,
       scale,
       tooltip,
-      height: 100
+      rData:[]
     }
-  }
+  },
+  computed:{
+    getData(){
+      let data = JSON.parse(this.sdata)
+      let rData = []
+      for(let ind = 0, end = data.length; ind < end; ind ++){
+        rData.push({time:ind, value:data[ind]})
+      }
+      return rData
+    }
+  },
+  // watch:{
+  //   sdata:function(newVal,oldVal){
+  //       // console.log("异步输出"+newVal, oldVal)
+  //   }
+  // }
 }
 </script>
 
