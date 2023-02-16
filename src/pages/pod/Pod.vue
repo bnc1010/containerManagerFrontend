@@ -101,7 +101,7 @@ export default {
       this.loadPodMetrics()
     },
     async loadPod(){
-      await getPodsOfOneNamespace(this.namespace).then(res => {
+      await getPodsOfOneNamespace(this.namespace, "", "").then(res => {
         this.podSave = res.data.data.items
         let end = this.podSave.length
         this.podShow = []

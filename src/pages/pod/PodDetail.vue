@@ -37,7 +37,7 @@
         <a-table style="font-size: 8px;" :columns="conditionColumns" :data-source="podShow.conditions"></a-table>
       </a-card>
       <a-card>
-        <a-tabs default-active-key="6 " @change="changeTab">
+        <a-tabs default-active-key="1 " @change="changeTab">
           <a-tab-pane key="1" tab="容器">
             <a-table :columns="containerColumns" :data-source="containerShow">
               <div class="containerInfo" slot="expandedRowRender" slot-scope="record" style="margin: 0">

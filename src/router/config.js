@@ -92,6 +92,26 @@ const options = {
           },
           component: () => import('@/pages/pod/PodDetail')
         },
+        {
+          path: 'deployment',
+          name: '无状态',
+          meta: {
+            icon: 'table',
+            page: {
+              cacheAble: false
+            }
+          },
+          component: () => import('@/pages/deployment/Deployment'),
+        },
+        {
+          path: 'deployment/detail/:id',
+          name: 'Deployment详情',
+          meta: {
+            highlight: '/deployment',
+            invisible: true
+          },
+          component: () => import('@/pages/deployment/DeploymentDetail')
+        },
       ]
     },
   ]
