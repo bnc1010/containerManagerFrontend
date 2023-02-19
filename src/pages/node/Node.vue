@@ -3,7 +3,7 @@
     <page-layout>
     <a-table :columns="columns" :data-source="nodeShowList">
       <span slot="action" slot-scope="record">
-        <router-link :to="'/node/detail/' + record.name">detail</router-link>
+        <router-link :to="'/k8s/node/detail/' + record.name">detail</router-link>
       </span>
       <span slot="status" slot-scope="text,record" >
         <a-tooltip placement="right" overlayClassName="tooltip_200px">

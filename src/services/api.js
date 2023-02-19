@@ -18,10 +18,22 @@ module.exports = {
   DEPLOYMETN: `${BASE_URL}/admin/getDeployment`,
   SERVICE_LIST:`${BASE_URL}/admin/listServices`,
   IMAGE_LIST:`${BASE_URL}/admin/listImages`,
+  FILES:`${BASE_URL}/admin/getFilesInfo`,
   FILES_LIST:`${BASE_URL}/admin/listFiles`,
+  DATASET:`${BASE_URL}/admin/getDatasetInfo`,
+  DATASET_LIST:`${BASE_URL}/admin/listDatasets`,
+
+  PROJECT:`${BASE_URL}/admin/getProjectInfo`,
   PROJECT_LIST:`${BASE_URL}/admin/listProjects`,
+
+  NODETAG_ADD:`${BASE_URL}/root/addNodeTag`,
+  NODETAG_DEL:`${BASE_URL}/root/delNodeTag`,
+  NODETAG_EDIT:`${BASE_URL}/root/editNodeTag`,
   NODETAG_LIST:`${BASE_URL}/admin/listNodeTags`,
+
   RESOURCES_LIST:`${BASE_URL}/admin/listResources`,
+
+  IMAGE:`${BASE_URL}/admin/getImageInfo`,
   IMAGE_ADD:`${BASE_URL}/admin/addImage`,
   IMAGE_DEL:`${BASE_URL}/admin/delImage`,
   IMAGE_EDIT:`${BASE_URL}/admin/editImage`,

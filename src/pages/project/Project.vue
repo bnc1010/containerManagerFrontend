@@ -16,7 +16,7 @@
           <a-icon v-else type="close-circle" theme="twoTone" two-tone-color="#eb2f96"/>
         </span>
         <span slot="action" slot-scope="record">
-          <router-link :to="'#'" :key="record.key">详情</router-link>
+          <router-link :to="'/business/project/detail/' + record.Id" :key="record.key">详情</router-link>
           <a-divider type="vertical" />
           <router-link :to="'#'">禁用</router-link>
           <a-divider type="vertical" />
@@ -31,6 +31,7 @@
 import {getProjectList} from '@/services/sql'
 import PageLayout from '@/layouts/PageLayout'
 import {UTCZ2UTC8} from '@/utils/time'
+
 const projectColumns = [
   { title: 'ID', dataIndex: 'Id', key: 'id', width: 100,},
   { title: '名称', dataIndex: 'Name', key: 'name', width: 100,},

@@ -159,6 +159,16 @@ const options = {
               component: () => import('@/pages/file/File')
             },
             {
+              path: 'dataset',
+              name: '数据集',
+              meta: {
+                page: {
+                  cacheAble: false
+                }
+              },
+              component: () => import('@/pages/dataset/Dataset')
+            },
+            {
               path: 'project',
               name: '项目',
               meta: {
@@ -167,6 +177,15 @@ const options = {
                 } 
               },
               component: () => import('@/pages/project/Project')
+            },
+            {
+              path: 'project/detail/:id',
+              name: '项目详情',
+              meta: {
+                highlight: '/business/project',
+                invisible: true
+              },
+              component: () => import('@/pages/project/Detail')
             },
             {
               path: 'project_node_tag',

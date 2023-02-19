@@ -23,7 +23,7 @@
     <a-divider />
     <a-table :columns="podColumns" :data-source="podShow">
       <span slot="action" slot-scope="record">
-        <router-link :to="'/pod/detail/' + record.name + '?namespace=' + record.namespace">详情</router-link>
+        <router-link :to="'/k8s/pod/detail/' + record.name + '?namespace=' + record.namespace">详情</router-link>
       </span>
       <span slot="status" slot-scope="text,record" >
         <a-tooltip placement="right" overlayClassName="tooltip_150px">

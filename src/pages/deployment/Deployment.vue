@@ -18,7 +18,7 @@
     <a-divider />
     <a-table :columns="deploymentColumns" :data-source="deploymentShow">
       <span slot="action" slot-scope="record">
-        <router-link :to="'/deployment/detail/' + record.name + '?namespace=' + record.namespace">详情</router-link>
+        <router-link :to="'/k8s/deployment/detail/' + record.name + '?namespace=' + record.namespace">详情</router-link>
       </span>
       <span slot="labels" slot-scope="text,record">
         <div style="float: left;" :key="label.key" v-for="label in record.labels">

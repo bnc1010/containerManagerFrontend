@@ -29,8 +29,6 @@
           >
             <router-link :to="'#'">删除</router-link>
           </a-popconfirm>
-
-          
         </span>
         
       </a-table>
@@ -209,12 +207,20 @@ export default {
     },
     async handleSubmit(){
       this.editBox.confirmLoading = true
-      let _prots = []
+      let _ports = []
       for(let ind = 0, end = this.form.ports.length; ind < end; ind++){
-        if(this.form.ports[ind].port != '' && this.form.ports[ind].protocol != '')
-        _prots.push(this.form.ports[ind])
+        console.log(this.form.ports[ind])
+        if(this.form.ports[ind].port != '' && this.form.ports[ind].protocol != ''){
+          try {
+            _ports.push({port:Number.parseInt(this.form.ports[ind].port), protocol:this.form.ports[ind].protocol})
+          }
+          catch(err){
+            this.openNotificationWithIcon('info', '无效端口已跳过', '')
+          }
+        }
+        
       }
-      this.form.ports = _prots
+      this.form.ports = _ports
       let submitSta = false
       if(this.isAdd){
         submitSta = await this.addSubmit()

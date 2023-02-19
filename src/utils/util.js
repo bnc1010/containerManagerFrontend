@@ -33,3 +33,14 @@ export function enquireScreen(call) {
 }
 
 const _toString = Object.prototype.toString
+
+
+export function fileSize(fileSize){
+  let dw = ['B', 'K', 'M', 'G','T','P']
+  let dw_ind = 0
+  while(fileSize > 1024){
+    fileSize = fileSize / 1024
+    dw_ind++
+  }
+  return Math.floor(fileSize) + dw[dw_ind]
+}
